@@ -22,7 +22,7 @@ if(dir.exists('UCI HAR Dataset')) {
 features <- read.table("UCI HAR Dataset/features.txt", col.names = c("count","feature"))
 
 #define activity labels
-activityLabels <- read.table("UCI HAR Dataset/activity_labels.txt", col.names = c("activity label", "activity"))
+activityLabels <- read.table("UCI HAR Dataset/activity_labels.txt", col.names = c("activity_label", "activity"))
 
 #file that indicates which subject performed what
 subjectTest <- read.table("UCI HAR Dataset/test/subject_test.txt", col.names = "subject")
@@ -32,7 +32,7 @@ featuresList <- features$feature
 xTest <- read.table("UCI HAR Dataset/test/X_test.txt",col.names=featuresList)
 
 #values for labels for testing data
-yTest<-read.table("UCI HAR Dataset/test/y_test.txt", col.names="activity label")
+yTest<-read.table("UCI HAR Dataset/test/y_test.txt", col.names="activity_label")
 
 #file that indicates which subject performed what
 subjectTrain <- read.table("UCI HAR Dataset/train/subject_train.txt", col.names = "subject")
@@ -41,7 +41,7 @@ subjectTrain <- read.table("UCI HAR Dataset/train/subject_train.txt", col.names 
 xTrain <- read.table("UCI HAR Dataset/train/X_train.txt", col.names = featuresList)
 
 #values for labels for testing data
-yTrain <- read.table("UCI HAR Dataset/train/y_train.txt", col.names = "activity label")
+yTrain <- read.table("UCI HAR Dataset/train/y_train.txt", col.names = "activity_label")
 
 # Bind columns into test and training set
 test <- cbind(subjectTest, xTest, yTest)
@@ -53,7 +53,7 @@ combined <- rbind(test, train)
 #filter for mean and standard deviation
 headingOfCombined <- names(combined)
 combinedFilteredForMeanAndSD<-grep(".*mean.*|.*std.*", ignore.case=TRUE, headingOfCombined)
-selectedData <- combined %>% select(subject, combinedFilteredForMeanAndSD)
+selectedData <- combined %>% select(subject, activity_label, combinedFilteredForMeanAndSD)
 
 #fix all variable names
 names(selectedData) <- gsub("[.]", "", names(selectedData))
@@ -77,13 +77,8 @@ names(selectedData) <- gsub('anglein', 'angle in', names(selectedData))
 names(selectedData) <- gsub('angletBody', 'angle Time Body', names(selectedData))
 names(selectedData) <- gsub('  ', ' ', names(selectedData))
 
-#define activity variables
-names(selectedData)[2] = "activity_List"
-
-#creating the relevant output table
-outputTable <- selectedData %>%
-  group_by(subject, activity_List) %>% #groups into subjects and activities
-  summarise_all(list(mean)) #determines the mean of each
+#creating the relevant output table; splits all information into subjects and activities
+outputTable <- selectedData %>% group_by(subject, activity_label) %>% summarise_all(list(mean)) 
 
 #writing the actual file
 write.table(outputTable, "outputFile.txt", row.name=FALSE)
